@@ -75,7 +75,9 @@ class GPTResearcher:
         """
         if self.verbose:
             await stream_output("logs", f"🔎 Starting the research task for '{self.query}'...", self.websocket)
-        
+        self.query = await translate(self.query, "English", self.cfg)
+        if self.parent_query != "":
+            self.parent_query = await translate(self.parent_query, "English", self.cfg)
         # Generate Agent
         if not (self.agent and self.role):
             self.agent, self.role = await choose_agent(query=self.query, cfg=self.cfg,

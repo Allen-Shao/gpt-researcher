@@ -2,6 +2,12 @@ from datetime import datetime, timezone
 import warnings
 from gpt_researcher.utils.enum import ReportType, ReportSource
 
+
+report_format_prompt=f"""
+FORMAT: 
+- The output language must be in Chinese.
+"""
+
 def generate_search_queries_prompt(question: str, parent_query: str, report_type: str, max_iterations: int=3,):
     """ Generates the search queries prompt for the given question.
     Args: 
@@ -89,7 +95,7 @@ def generate_resource_report_prompt(question, context, report_source: str, repor
         reference_prompt = f"""
             You MUST write all used source document names at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each."
         """
-    
+
     return f'"""{context}"""\n\nBased on the above information, generate a bibliography recommendation report for the following' \
            f' question or topic: "{question}". The report should provide a detailed analysis of each recommended resource,' \
            ' explaining how each source can contribute to finding answers to the research question.\n' \
@@ -243,6 +249,8 @@ def generate_subtopic_report_prompt(
     - Must NOT have any introduction, conclusion, summary or reference section.
     - You MUST include hyperlinks with markdown syntax ([url website](url)) related to the sentences wherever necessary.
     - The report should have a minimum length of {total_words} words.
+
+    {report_format_prompt}
     """
 
 
@@ -254,6 +262,7 @@ def generate_report_introduction(question: str, research_summary: str = "") -> s
         - The introduction should be preceded by an H1 heading with a suitable topic for the entire report.
         - You must include hyperlinks with markdown syntax ([url website](url)) related to the sentences wherever necessary.
         Assume that the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')} if required.
+        {report_format_prompt}
     """
 
 

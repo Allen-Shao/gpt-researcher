@@ -147,6 +147,31 @@ async def get_sub_queries(query: str, agent_role_prompt: str, cfg, parent_query:
 
     return sub_queries
 
+async def translate(query: str, language: str, cfg, cost_callback: callable = None):
+    """
+    Gets the sub queries
+    Args:
+        query: original query
+        cfg
+        cost_callback:
+
+    Returns:
+        output
+
+    """
+    max_research_iterations = cfg.max_iterations if cfg.max_iterations else 1
+    response = await create_chat_completion(
+        model=cfg.smart_llm_model,
+        messages=[
+            {"role": "system", "content": f"Translate the input into {language}"},
+            {"role": "user", "content": query}],
+        temperature=0,
+        llm_provider=cfg.llm_provider,
+        llm_kwargs=cfg.llm_kwargs,
+        cost_callback=cost_callback
+    )
+
+    return response
 
 def scrape_urls(urls, cfg=None):
     """

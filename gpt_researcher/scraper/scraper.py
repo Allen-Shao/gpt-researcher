@@ -44,10 +44,11 @@ class Scraper:
         """
         content = ""
         try:
+            print("Scraping: ", link)
             Scraper = self.get_scraper(link)
             scraper = Scraper(link, session)
             content = scraper.scrape()
-
+            print("Scraped: ", link)
             if len(content) < 100:
                 return {"url": link, "raw_content": None}
             return {"url": link, "raw_content": content}
