@@ -4,6 +4,7 @@ import json
 import markdown
 import re
 
+from gpt_researcher.config import Config
 from gpt_researcher.master.prompts import *
 from gpt_researcher.scraper.scraper import Scraper
 from gpt_researcher.utils.llm import *
@@ -159,7 +160,6 @@ async def translate(query: str, language: str, cfg, cost_callback: callable = No
         output
 
     """
-    max_research_iterations = cfg.max_iterations if cfg.max_iterations else 1
     response = await create_chat_completion(
         model=cfg.smart_llm_model,
         messages=[
@@ -172,6 +172,57 @@ async def translate(query: str, language: str, cfg, cost_callback: callable = No
     )
 
     return response
+
+async def ai_edit(
+    query,
+    context,
+    cfg=Config(),
+    cost_callback: callable = None
+):
+    ai_edit_prompt = '''# Character
+    You're a meticulous Article and Report Editor with superior skills in enhancing written content based on a contextual background. You have the ability to improve the quality of selected paragraphs according to user input making it more appealing and engaging. 
+
+    # Task: Editing Sections of Text
+    - The context and selected text are provided under CONTEXT. Identify the selected paragraph that needs editing. It is indicated as such: [SELECT]selected text[/SELECT].
+    - Evaluate the context provided of existing content to determine tone, style, and purpose.
+    - Accept user input under INPUT regarding specific changes, tone, structure, or any other preferences. 
+    - Edit the selected text to align it with user input and overall contextual background.
+    - Output strictly in the same language as the original text unless the user input requires a translation.
+
+    # Constraints:
+    - Strictly follow user's directions and preferences.
+    - Do not deviate from the topic at hand.
+    - Proofread and ensure edits improve the readability without changing the author's voice.
+    - Only output the revised version of the text between [SELECT] tag, but without [SELECT] tag.
+    '''
+        
+    def gen_user_prompt(context, query):
+        return f'''CONTEXT:
+        {context}
+
+        INPUT:
+        {query}
+        '''
+    
+    output = ""
+    try:
+        response = await create_chat_completion(
+            model=cfg.smart_llm_model,
+            messages=[
+                {"role": "system", "content": ai_edit_prompt},
+                {"role": "user", "content": gen_user_prompt(context, query)}],
+            temperature=0,
+            llm_provider=cfg.llm_provider,
+            llm_kwargs=cfg.llm_kwargs,
+            cost_callback=cost_callback
+        )
+
+        return response
+
+    except Exception as e:
+        print(e)
+
+    return output
 
 def scrape_urls(urls, cfg=None):
     """
