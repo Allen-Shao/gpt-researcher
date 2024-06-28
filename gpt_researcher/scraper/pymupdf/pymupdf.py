@@ -16,6 +16,10 @@ class PyMuPDFScraper:
           The `scrape` method is returning a string representation of the `doc` object, which is loaded
         using PyMuPDFLoader from the provided link.
         """
-        loader = PyMuPDFLoader(self.link)
-        doc = loader.load()
-        return str(doc)
+        try:
+          loader = PyMuPDFLoader(self.link)
+          doc = loader.load()
+          return str(doc)
+        except Exception as e:
+          print("Error! : " + str(e))
+          return ""
