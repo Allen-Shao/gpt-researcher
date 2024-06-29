@@ -28,7 +28,8 @@ class GPTResearcher:
         subtopics: list = [],
         visited_urls: set = set(),
         verbose: bool = True,
-        context=[]
+        context=[],
+        docs=[],
     ):
         """
         Initialize the GPT Researcher class.
@@ -69,6 +70,8 @@ class GPTResearcher:
         # Stores all the user provided subtopics
         self.subtopics = subtopics
 
+        self.docs = docs
+
     async def conduct_research(self):
         """
         Runs the GPT Researcher to conduct research
@@ -91,7 +94,10 @@ class GPTResearcher:
             self.context = await self.__get_context_by_urls(self.source_urls)
             
         elif self.report_source == ReportSource.Local.value:
-            document_data = await DocumentLoader(self.cfg.doc_path).load()
+            if self.docs == []:
+                document_data = await DocumentLoader(self.cfg.doc_path).load()
+            else:
+                document_data = self.docs
             self.context = await self.__get_context_by_search(self.query, document_data)
         # Default web based research
         else:
@@ -203,8 +209,8 @@ class GPTResearcher:
         if self.verbose:
             await stream_output("logs", f"\n🔎 Running research for '{sub_query}'...", self.websocket)
 
-        if not scraped_data:
-            scraped_data = await self.__scrape_data_by_query(sub_query)
+        web_data = await self.__scrape_data_by_query(sub_query)
+        scraped_data.extend(web_data)
 
         content = await self.__get_similar_content_by_query(sub_query, scraped_data)
 
